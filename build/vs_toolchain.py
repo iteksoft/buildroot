@@ -513,6 +513,14 @@ def NormalizePath(path):
   return path
 
 
+def SetEnvironmentAndGetSDKVersion():
+  # If WINDOWSSDKDIR is not set, search the default SDK path and set it.
+  if not 'WindowsSDKVersion' in os.environ:
+      os.environ['WindowsSDKVersion'] = ''
+
+  return NormalizePath(os.environ['WindowsSDKVersion'])
+
+
 def SetEnvironmentAndGetSDKDir():
   """Gets location information about the current sdk (must have been
   previously updated by 'update'). This is used for the GN build."""
@@ -533,14 +541,16 @@ def GetToolchainDir():
   previously updated by 'update'). This is used for the GN build."""
   runtime_dll_dirs = SetEnvironmentAndGetRuntimeDllDirs()
   win_sdk_dir = SetEnvironmentAndGetSDKDir()
+  win_sdk_version = SetEnvironmentAndGetSDKVersion()
 
   print('''vs_path = %s
 sdk_path = %s
+sdk_version = %s
 vs_version = %s
 wdk_dir = %s
 runtime_dirs = %s
 ''' % (ToGNString(NormalizePath(os.environ['GYP_MSVS_OVERRIDE_PATH'])),
-       ToGNString(win_sdk_dir), ToGNString(GetVisualStudioVersion()),
+       ToGNString(win_sdk_dir), ToGNString(win_sdk_version), ToGNString(GetVisualStudioVersion()),
        ToGNString(NormalizePath(os.environ.get('WDK_DIR', ''))),
        ToGNString(os.path.pathsep.join(runtime_dll_dirs or ['None']))))
 

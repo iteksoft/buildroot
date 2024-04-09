@@ -101,7 +101,7 @@ def _LoadEnvFromBat(args):
   return variables.decode(errors='ignore')
 
 
-def _LoadToolchainEnv(cpu, toolchain_root, sdk_dir, target_store):
+def _LoadToolchainEnv(cpu, toolchain_root, sdk_dir, target_store, sdk_ver):
   """Returns a dictionary with environment variables that must be set while
   running binaries from the toolchain (e.g. INCLUDE and PATH for cl.exe)."""
   # Check if we are running in the SDK command line environment and use
@@ -185,7 +185,11 @@ def _LoadToolchainEnv(cpu, toolchain_root, sdk_dir, target_store):
     # Explicitly specifying the SDK version to build with to avoid accidentally
     # building with a new and untested SDK. This should stay in sync with the
     # packaged toolchain in build/vs_toolchain.py.
-    args.append(SDK_VERSION)
+    if (sdk_ver=="")
+      args.append(SDK_VERSION)
+    else:
+      args.append(sdk_ver)
+
     variables = _LoadEnvFromBat(args)
   return _ExtractImportantEnvironment(variables)
 
@@ -225,7 +229,7 @@ def FindFileInEnvList(env, env_name, separator, file_name, optional=False):
 
 
 def main():
-  if len(sys.argv) != 7:
+  if len(sys.argv) < 7:
     print('Usage setup_toolchain.py '
           '<visual studio path> <win sdk path> '
           '<runtime dirs> <target_os> <target_cpu> '
@@ -242,6 +246,9 @@ def main():
   target_os = sys.argv[4]
   target_cpu = sys.argv[5]
   environment_block_name = sys.argv[6]
+  if len(sys.argv) > 7:
+    win_sdk_version = sys.argv[7]
+
   if (environment_block_name == 'none'):
     environment_block_name = ''
 
@@ -271,7 +278,7 @@ def main():
   for cpu in cpus:
     if cpu == target_cpu:
       # Extract environment variables for subprocesses.
-      env = _LoadToolchainEnv(cpu, toolchain_root, win_sdk_path, target_store)
+      env = _LoadToolchainEnv(cpu, toolchain_root, win_sdk_path, target_store, win_sdk_version)
       env['PATH'] = runtime_dirs + os.pathsep + env['PATH']
 
       vc_bin_dir = FindFileInEnvList(env, 'PATH', os.pathsep, 'cl.exe')
